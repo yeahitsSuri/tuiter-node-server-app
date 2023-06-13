@@ -47,6 +47,6 @@ const findUsers = (req, res) => {
     res.json(usersOfType)
     return
   }
-   res.json(users)
+  res.json(users)
 }
 export default UserController

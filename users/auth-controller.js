@@ -1,24 +1,29 @@
 import * as usersDao from "./users-dao.js";
 
+var currentUserStatus;
 const AuthController = (app) => {
-  const register = (req, res) => {
-   const username = req.body.username;
-   const user = usersDao.findUserByUsername(username);
-   if (user) {
-     res.sendStatus(409);
-     return;
-   }
-   const newUser = usersDao.createUser(req.body);
-   req.session["currentUser"] = newUser;
-   res.json(newUser);
+  const register = async (req, res) => {
+  const username = req.body.username;
+  const user = usersDao.findUserByUsername(username);
+  if (user) {
+    console.log("this user is already existed!");
+    res.sendStatus(409);
+    return;
+  }
+  const userGet = req.body;
+  userGet._id = (new Date()).getTime() + '';
+  const newUser = usersDao.createUser(userGet);
+  currentUserStatus = newUser;
+  //req.session["currentUser"] = newUser;
+  res.json(newUser);
  };
 
- const login = (req, res) => {
+ const login = async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const user = usersDao.findUserByCredentials(username, password);
     if (user) {
-      req.session["currentUser"] = user;
+      currentUserStatus = user;
       res.json(user);
     } else {
       res.sendStatus(404);
@@ -26,9 +31,10 @@ const AuthController = (app) => {
     return;
   };
  
-  const profile = (req, res) => {
-    const currentUser = req.session["currentUser"];
-    console.log("Current User is:" + currentUser);
+  const profile = async (req, res) => {
+    const currentUser = currentUserStatus;
+    console.log("current user stats is :" + currentUserStatus._id);
+    console.log("Current User is:" + currentUser._id);
     if (!currentUser) {
       res.sendStatus(404);
       return;
@@ -41,16 +47,24 @@ const AuthController = (app) => {
     res.sendStatus(200);
   };
  
- const update = (req, res) => {
-    const uid = req.params.uid;
-    const user = usersDao.findUserById(uid);
-    if (user !== null) {
-      usersDao.updateUser(uid, req.body);
-      res.json(usersDao.findUserById(uid));
-      console.log("user is updated with:" + usersDao.findUserById(uid));
+ const update = async (req, res) => {
+    const currentUser = currentUserStatus;
+    //const uid = req.params.uid;
+    //const user = usersDao.findUserById(uid);
+    if (!currentUser) {
+      res.sendStatus(404);
+      renturn;
     }
- };
-
+    const update = req.body;
+    const id = currentUser._id;
+    const userAfterUpd = usersDao.updateUser(id, update);
+    if (userAfterUpd) {
+      currentUserStatus = userAfterUpd;
+      res.json(userAfterUpd);
+    } else {
+      res.sendStatus(404);
+    }
+  };
 
  app.post("/api/users/register", register);
  app.post("/api/users/login",    login);
