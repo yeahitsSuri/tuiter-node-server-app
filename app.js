@@ -19,10 +19,18 @@ app.use(
         credentials: true,
         origin: "http://localhost:3000",
 }))
+
 app.use(express.json());
-const port = process.env.PORT || 4000;
+app.get('/api', (req, res) => {
+    res.send('Welcome to the API');
+});
+
 AuthController(app);
 TuisController(app);
 HelloController(app);
 UserController(app);
-app.listen(process.env.PORT || 4000);
+const port = process.env.PORT || 4000;
+//app.listen(process.env.PORT || 4000);
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
